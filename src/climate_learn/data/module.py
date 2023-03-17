@@ -4,7 +4,7 @@ from abc import ABC
 from climate_learn.data.tasks import TaskArgs, Task
 
 import copy
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple, Union, Optional
 
 # Third party
 import numpy as np
@@ -36,15 +36,18 @@ class DataModuleArgs(ABC):
     def __init__(
         self,
         task_args: TaskArgs,
-        train_start_year: int,
-        val_start_year: int,
-        test_start_year: int,
-        end_year: int = 2018,
+        train_start_year: int = None,
+        val_start_year: int = None,
+        test_start_year: int = None,
+        deploy_start_year: int = None, #Add this line
+        end_year: int = None,
     ) -> None:
-        self.train_start_year: int = train_start_year
-        self.val_start_year: int = val_start_year
-        self.test_start_year: int = test_start_year
-        self.end_year: int = end_year
+        self.task_args = task_args
+        self.train_start_year = train_start_year
+        self.val_start_year = val_start_year
+        self.test_start_year = test_start_year
+        self.deploy_start_year = deploy_start_year #Add this line
+        self.end_year = end_year
 
         self.train_task_args: TaskArgs = copy.deepcopy(task_args)
         self.train_task_args.split = "train"
@@ -57,6 +60,11 @@ class DataModuleArgs(ABC):
         self.test_task_args: TaskArgs = copy.deepcopy(task_args)
         self.test_task_args.split = "test"
         self.test_task_args.setup(self)
+        
+        #Add the following block of code
+        self.deploy_task_args: TaskArgs = copy.deepcopy(task_args)
+        self.deploy_task_args.split = "deploy"
+        self.deploy_task_args.setup(self)
 
 
 class DataModule(LightningDataModule):
@@ -110,7 +118,114 @@ class DataModule(LightningDataModule):
         :type root_highres_dir: str, optional
         """
         super().__init__()
+        self.data_module_args = data_module_args
+        self.batch_size = batch_size
+        self.num_workers = num_workers
 
+        self.setup()
+        
+    def setup(self, stage: Optional[str] = None) -> None:
+        if self.data_module_args.deploy_start_year is not None and \
+           self.data_module_args.train_start_year is None and \
+           self.data_module_args.val_start_year is None and \
+           self.data_module_args.test_start_year is None:
+            self.setup_deploy_data()
+        elif self.data_module_args.deploy_start_year is None and \
+             self.data_module_args.train_start_year is not None and \
+             self.data_module_args.val_start_year is not None and \
+             self.data_module_args.test_start_year is not None:
+            self.setup_train_val_test_data()
+        else:
+            self.setup_deploy_data()
+            self.setup_train_val_test_data()
+
+    def setup_deploy_data(self) -> None:
+        task_class: Callable[..., Task] = self.data_module_args.deploy_task_args._task_class
+        self.deploy_dataset: Task = task_class(self.data_module_args.deploy_task_args)
+        self.deploy_dataset.setup()
+        self.deploy_dataset.set_normalize(
+            self.deploy_dataset.inp_transform,
+            self.deploy_dataset.out_transform,
+            self.deploy_dataset.constant_transform,
+        )
+
+    def setup_train_val_test_data(self) -> None:
+        task_class: Callable[..., Task] = self.data_module_args.train_task_args._task_class
+        self.train_dataset: Task = task_class(self.data_module_args.train_task_args)
+        self.train_dataset.setup()
+
+        self.val_dataset: Task = task_class(self.data_module_args.val_task_args)
+        self.val_dataset.setup()
+        self.val_dataset.set_normalize(
+            self.train_dataset.inp_transform,
+            self.train_dataset.out_transform,
+            self.train_dataset.constant_transform,
+        )
+
+        self.test_dataset: Task = task_class(self.data_module_args.test_task_args)
+        self.test_dataset.setup()
+        self.test_dataset.set_normalize(
+            self.train_dataset.inp_transform,
+            self.train_dataset.out_transform,
+            self.train_dataset.constant_transform,
+        )
+
+    def train_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.train_dataset,
+            shuffle=True,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
+
+    def val_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.val_dataset,
+            shuffle=False,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
+
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.test_dataset,
+            shuffle=False,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
+
+    def deploy_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.deploy_dataset,
+            shuffle=False,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+        )
+
+    def get_lat_lon(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self.train_dataset.lat, self.train_dataset.lon
+
+    def get_out_transforms(self) -> Union[transforms.Normalize, None]:
+        return self.train_dataset.out_transform
+
+    def get_climatology(self, split: str = "val") -> torch.Tensor:
+        if split == "train":
+            return self.train_dataset.get_climatology()
+        elif split == "val":
+            return self.val_dataset.get_climatology()
+        elif split == "test":
+            return self.test_dataset.get_climatology()
+        elif split == "deploy":
+            return self.deploy_dataset.get_climatology()
+        else:
+            raise NotImplementedError
+
+
+        
+        
+        
+
+"""
         assert (
             data_module_args.end_year >= data_module_args.test_start_year
             and data_module_args.test_start_year > data_module_args.val_start_year
@@ -190,3 +305,4 @@ class DataModule(LightningDataModule):
             pin_memory=self.hparams.pin_memory,
             collate_fn=collate_fn,
         )
+"""
