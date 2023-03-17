@@ -118,9 +118,11 @@ class DataModule(LightningDataModule):
         :type root_highres_dir: str, optional
         """
         super().__init__()
+        
         self.data_module_args = data_module_args
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.save_hyperparameters(logger=False) # Add this line
 
         self.setup()
         
@@ -174,32 +176,40 @@ class DataModule(LightningDataModule):
         return DataLoader(
             self.train_dataset,
             shuffle=True,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
+            batch_size=self.hparams.batch_size,
+            num_workers=self.hparams.num_workers,
+            pin_memory=self.hparams.pin_memory, # Update this line
+            collate_fn=collate_fn, # Add this line
         )
 
     def val_dataloader(self) -> DataLoader:
         return DataLoader(
             self.val_dataset,
             shuffle=False,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
+            batch_size=self.hparams.batch_size,
+            num_workers=self.hparams.num_workers,
+            pin_memory=self.hparams.pin_memory, # Update this line
+            collate_fn=collate_fn, # Add this line
         )
 
     def test_dataloader(self) -> DataLoader:
         return DataLoader(
             self.test_dataset,
             shuffle=False,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
+            batch_size=self.hparams.batch_size,
+            num_workers=self.hparams.num_workers,
+            pin_memory=self.hparams.pin_memory, # Update this line
+            collate_fn=collate_fn, # Add this line
         )
 
     def deploy_dataloader(self) -> DataLoader:
         return DataLoader(
             self.deploy_dataset,
             shuffle=False,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
+            batch_size=self.hparams.batch_size,
+            num_workers=self.hparams.num_workers,
+            pin_memory=self.hparams.pin_memory, # Update this line
+            collate_fn=collate_fn, # Add this line
         )
 
     def get_lat_lon(self) -> Tuple[np.ndarray, np.ndarray]:
