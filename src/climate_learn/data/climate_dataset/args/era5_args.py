@@ -20,7 +20,41 @@ class ERA5Args(ClimateDatasetArgs):
         super().__init__(variables, split)
         self.root_dir: str = root_dir
         self.years: Iterable[int] = years
+        
+    def setup(self, data_module_args: DataModuleArgs) -> None:
+        super().setup(data_module_args)
+        if self.split == "train":
+            if data_module_args.train_start_year is not None:
+                self.years = range(
+                    data_module_args.train_start_year, data_module_args.val_start_year
+                )
+            else:
+                self.years = []
+        elif self.split == "val":
+            if data_module_args.val_start_year is not None:
+                self.years = range(
+                    data_module_args.val_start_year, data_module_args.test_start_year
+                )
+            else:
+                self.years = []
+        elif self.split == "test":
+            if data_module_args.test_start_year is not None:
+                self.years = range(
+                    data_module_args.test_start_year, data_module_args.end_year + 1
+                )
+            else:
+                self.years = []
+        elif self.split == "deploy":
+            if data_module_args.deploy_start_year is not None:
+               self.years = range(
+                       data_module_args.deploy_start_year, data_module_args.end_year + 1
+               )  # Add handling for the "deploy" split
+            else:
+                self.years = []
+        else:
+            raise ValueError(" Invalid split")
 
+"""
     def setup(self, data_module_args: DataModuleArgs) -> None:
         super().setup(data_module_args)
         if self.split == "train":
@@ -44,3 +78,4 @@ class ERA5Args(ClimateDatasetArgs):
                 self.years = []
         else:
             raise ValueError(" Invalid split")
+"""
