@@ -14,8 +14,8 @@ class ERA5Args(ClimateDatasetArgs):
         self,
         root_dir: str,
         variables: Sequence[str],
-        years: Optional[Iterable[int]] = None,  # Make years optional
-        split: Optional[str] = None,  # Make split optional
+        years: Iterable[int],  
+        split: str="train",  # Make split optional
     ) -> None:
         super().__init__(variables, split)
         self.root_dir: str = root_dir
