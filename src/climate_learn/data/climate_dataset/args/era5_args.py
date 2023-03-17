@@ -35,5 +35,9 @@ class ERA5Args(ClimateDatasetArgs):
             self.years = range(
                 data_module_args.test_start_year, data_module_args.end_year + 1
             )
+        elif self.split == "deploy":
+            self.years = range(
+                data_module_args.deploy_start_year, data_module_args.end_year + 1
+            )  # Add handling for the "deploy" split
         else:
             raise ValueError(" Invalid split")
