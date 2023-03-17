@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Iterable, Sequence, TYPE_CHECKING, Union
+from typing import Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Union
 from climate_learn.data.climate_dataset.args import ClimateDatasetArgs
 
 if TYPE_CHECKING:
@@ -14,8 +14,8 @@ class ERA5Args(ClimateDatasetArgs):
         self,
         root_dir: str,
         variables: Sequence[str],
-        years: Iterable[int],
-        split: str = "train",
+        years: Optional[Iterable[int]] = None,  # Make years optional
+        split: Optional[str] = None,  # Make split optional
     ) -> None:
         super().__init__(variables, split)
         self.root_dir: str = root_dir
@@ -36,8 +36,11 @@ class ERA5Args(ClimateDatasetArgs):
                 data_module_args.test_start_year, data_module_args.end_year + 1
             )
         elif self.split == "deploy":
-            self.years = range(
-                data_module_args.deploy_start_year, data_module_args.end_year + 1
-            )  # Add handling for the "deploy" split
+            if data_module_args.deploy_start_year is not None:
+               self.years = range(
+                       data_module_args.deploy_start_year, data_module_args.end_year + 1
+               )  # Add handling for the "deploy" split
+            else:
+                self.years = []
         else:
             raise ValueError(" Invalid split")
