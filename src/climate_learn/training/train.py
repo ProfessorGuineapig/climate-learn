@@ -35,12 +35,12 @@ class Trainer:
             auto_insert_metric_name=False,
         )
         summary_callback = RichModelSummary(max_depth=-1)
-        progress_callback = RichProgressBar()
+        #progress_callback = RichProgressBar()
 
         callbacks = [
             checkpoint_callback,
             summary_callback,
-            progress_callback,
+            #progress_callback,
         ]
 
         if early_stopping:
