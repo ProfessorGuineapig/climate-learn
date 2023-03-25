@@ -65,7 +65,7 @@ class ForecastLitModule(LightningModule):
         self.test_clim = clim
 
     def get_log_postfix(self):
-        pred_range = self.pred_range.hours()
+        pred_range = self.pred_range  # Remove the .hours() call
         if pred_range < 24:
             log_postfix = f"{pred_range}_hours"
         else:
