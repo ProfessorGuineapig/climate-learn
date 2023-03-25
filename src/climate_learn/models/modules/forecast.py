@@ -38,6 +38,7 @@ class ForecastLitModule(LightningModule):
         self.train_loss = [lat_weighted_mse]
         self.val_loss = [lat_weighted_mse_val, lat_weighted_rmse, lat_weighted_acc]
         self.optim_cls = optimizer
+        self.pred_range = None  # Initialize the pred_range attribute
         self.denormalization = None  # Initialize the denormalization attribute
         self.lat = None  # Initialize the lat attribute
         self.test_clim = None  # Initialize the test_clim attribute
