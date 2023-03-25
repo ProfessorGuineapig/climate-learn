@@ -29,7 +29,7 @@ class ForecastLitModule(LightningModule):
         max_epochs: int = 30,
         warmup_start_lr: float = 1e-8,
         eta_min: float = 1e-8,
-        pred_range: int = 0,  # Add pred_range argument with a default value
+        pred_range: int = 24,  # Add pred_range argument with a default value
     ):
         super().__init__()
         self.save_hyperparameters(logger=False, ignore=["net"])
