@@ -41,6 +41,9 @@ class ForecastLitModule(LightningModule):
         self.optim_cls = optimizer
         self.pred_range = pred_range  # Add this line to set the instance variable
         self.denormalization = None  # Initialize the denormalization attribute
+        self.lat = None  # Initialize the lat attribute
+        self.test_clim = None  # Initialize the test_clim attribute
+        self.train_clim = None  # Initialize the train_clim attribute
 
     def forward(self, x):
         with torch.no_grad():
