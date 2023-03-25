@@ -37,6 +37,7 @@ class VisionTransformer(nn.Module):
         mlp_ratio=4.0,
     ):
         super().__init__()
+        print("img_size:", img_size)  # Add this line to print the img_size value
 
         self.img_size = img_size
         self.n_channels = len(in_vars)
