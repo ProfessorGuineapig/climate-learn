@@ -40,6 +40,7 @@ class ForecastLitModule(LightningModule):
         self.val_loss = [lat_weighted_mse_val, lat_weighted_rmse, lat_weighted_acc]
         self.optim_cls = optimizer
         self.pred_range = pred_range  # Add this line to set the instance variable
+        self.denormalization = None  # Initialize the denormalization attribute
 
     def forward(self, x):
         with torch.no_grad():
