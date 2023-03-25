@@ -44,6 +44,7 @@ class ForecastLitModule(LightningModule):
         self.lat = None  # Initialize the lat attribute
         self.test_clim = None  # Initialize the test_clim attribute
         self.train_clim = None  # Initialize the train_clim attribute
+        self.val_clim = None  # Initialize the val_clim attribute
 
     def forward(self, x):
         with torch.no_grad():
