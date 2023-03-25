@@ -29,7 +29,6 @@ class ForecastLitModule(LightningModule):
         max_epochs: int = 30,
         warmup_start_lr: float = 1e-8,
         eta_min: float = 1e-8,
-        pred_range: int = 0,  # Add pred_range argument with a default value
     ):
         super().__init__()
         self.save_hyperparameters(logger=False, ignore=["net"])
@@ -39,7 +38,6 @@ class ForecastLitModule(LightningModule):
         self.train_loss = [lat_weighted_mse]
         self.val_loss = [lat_weighted_mse_val, lat_weighted_rmse, lat_weighted_acc]
         self.optim_cls = optimizer
-        self.pred_range = pred_range  # Add this line to set the instance variable
         self.denormalization = None  # Initialize the denormalization attribute
         self.lat = None  # Initialize the lat attribute
         self.test_clim = None  # Initialize the test_clim attribute
